@@ -220,7 +220,6 @@ class MainWindow(QMainWindow):
 
     def update_list(self):
         self.list_widget.clear()
-        # Organiza os itens em ordem alfabética na interface gráfica
         for abbr in sorted(self.shortcuts.keys(), key=str.lower):
             self.list_widget.addItem(abbr)
 
@@ -246,7 +245,6 @@ class MainWindow(QMainWindow):
         self.save_data()
         self.update_list()
         
-        # Encontra e seleciona o item recém-salvo (já que a ordem mudou)
         items = self.list_widget.findItems(abbr, Qt.MatchFlag.MatchExactly)
         if items:
             self.list_widget.setCurrentItem(items[0])
@@ -273,11 +271,18 @@ def get_pid():
     return None
 
 def check_pid(pid):
-    try:
-        os.kill(pid, 0)
-        return True
-    except OSError:
-        return False
+    if os.name == 'nt':  # Windows
+        try:
+            output = subprocess.check_output(["tasklist", "/FI", f"PID eq {pid}"], creationflags=0x08000000, text=True)
+            return str(pid) in output
+        except Exception:
+            return False
+    else:  # Linux/Mac
+        try:
+            os.kill(pid, 0)
+            return True
+        except OSError:
+            return False
 
 def main():
     if len(sys.argv) < 2:
@@ -294,14 +299,17 @@ def main():
         
         print("Iniciando o Expansor em segundo plano...")
         
-        # Configuração universal para rodar em background
         kwargs = {}
+        executable = sys.executable
+        
         if os.name == 'nt':  # Windows
-            kwargs['creationflags'] = 0x00000008  # DETACHED_PROCESS
+            kwargs['creationflags'] = 0x08000000  # CREATE_NO_WINDOW
+            if executable.endswith("python.exe"):
+                executable = executable.replace("python.exe", "pythonw.exe")
         else:  # Linux / Mac
             kwargs['start_new_session'] = True
             
-        subprocess.Popen([sys.executable, os.path.abspath(__file__), "run-daemon"], 
+        subprocess.Popen([executable, os.path.abspath(__file__), "run-daemon"], 
                          stdout=subprocess.DEVNULL, 
                          stderr=subprocess.DEVNULL,
                          **kwargs)
@@ -310,10 +318,13 @@ def main():
     elif command == "stop":
         pid = get_pid()
         if pid and check_pid(pid):
-            try:
-                os.kill(pid, signal.SIGTERM)
-            except OSError:
-                pass # Caso o processo já tenha morrido
+            if os.name == 'nt':
+                subprocess.run(["taskkill", "/PID", str(pid), "/F"], creationflags=0x08000000, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            else:
+                try:
+                    os.kill(pid, signal.SIGTERM)
+                except OSError:
+                    pass
             
             if os.path.exists(PID_FILE):
                 os.remove(PID_FILE)
