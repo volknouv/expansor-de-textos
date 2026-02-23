@@ -6,15 +6,16 @@ echo ===================================================
 echo   Configurando o Expansor de Textos...
 echo ===================================================
 
-:: Captura o caminho absoluto da pasta atual onde o instalar.bat esta
+:: Captura o caminho absoluto da pasta atual
 set "BASE_DIR=%~dp0"
-set "VENV_DIR=%BASE_DIR%venv"
+:: Nome especifico para o venv para evitar conflitos
+set "VENV_DIR=%BASE_DIR%venv_expansor"
 set "PYTHON_EXE=%VENV_DIR%\Scripts\python.exe"
 set "PIP_EXE=%VENV_DIR%\Scripts\pip.exe"
 set "SCRIPT_PY=%BASE_DIR%expansor.py"
 
 echo.
-echo [1/4] Criando o ambiente virtual (venv)...
+echo [1/4] Criando o ambiente virtual (venv_expansor)...
 python -m venv "%VENV_DIR%"
 
 echo.
@@ -44,22 +45,38 @@ echo @echo off > "%BASE_DIR%set.bat"
 echo start "" "%VENV_DIR%\Scripts\pythonw.exe" "%SCRIPT_PY%" set >> "%BASE_DIR%set.bat"
 
 echo.
-echo [4/4] Criando o desinstalar.bat (Kamikaze)...
+echo [4/4] Criando o desinstalar.bat ...
 
 :: Criando desinstalar.bat
 echo @echo off > "%BASE_DIR%desinstalar.bat"
 echo chcp 65001 ^>nul >> "%BASE_DIR%desinstalar.bat"
 echo echo =================================================== >> "%BASE_DIR%desinstalar.bat"
-echo echo   Desinstalando o Super Expansor... >> "%BASE_DIR%desinstalar.bat"
+echo echo   Desinstalando o Expansor de Textos... >> "%BASE_DIR%desinstalar.bat"
 echo echo =================================================== >> "%BASE_DIR%desinstalar.bat"
 echo echo. >> "%BASE_DIR%desinstalar.bat"
 echo echo Parando processos em segundo plano... >> "%BASE_DIR%desinstalar.bat"
 echo if exist "%%~dp0stop.bat" call "%%~dp0stop.bat" >> "%BASE_DIR%desinstalar.bat"
 echo echo. >> "%BASE_DIR%desinstalar.bat"
-echo echo Apagando todos os arquivos, venv e a pasta base... >> "%BASE_DIR%desinstalar.bat"
-echo cd /d "%%~dp0.." >> "%BASE_DIR%desinstalar.bat"
-:: O comando abaixo cria um processo independente que espera 2 segundos e apaga a pasta inteira
-echo start /b cmd /c "timeout /t 2 ^>nul ^& rd /s /q ""%%~dp0""" >> "%BASE_DIR%desinstalar.bat"
+echo echo Removendo todos os arquivos do projeto... >> "%BASE_DIR%desinstalar.bat"
+
+:: Deleta os arquivos do projeto original
+echo if exist "%%~dp0expansor.py" del "%%~dp0expansor.py" >> "%BASE_DIR%desinstalar.bat"
+echo if exist "%%~dp0requirements.txt" del "%%~dp0requirements.txt" >> "%BASE_DIR%desinstalar.bat"
+echo if exist "%%~dp0modelos.json" del "%%~dp0modelos.json" >> "%BASE_DIR%desinstalar.bat"
+
+:: Deleta os arquivos .bat gerados
+echo if exist "%%~dp0start.bat" del "%%~dp0start.bat" >> "%BASE_DIR%desinstalar.bat"
+echo if exist "%%~dp0stop.bat" del "%%~dp0stop.bat" >> "%BASE_DIR%desinstalar.bat"
+echo if exist "%%~dp0status.bat" del "%%~dp0status.bat" >> "%BASE_DIR%desinstalar.bat"
+echo if exist "%%~dp0set.bat" del "%%~dp0set.bat" >> "%BASE_DIR%desinstalar.bat"
+
+:: Remove a pasta do venv e o cache do python
+echo if exist "%%~dp0venv_expansor" rd /s /q "%%~dp0venv_expansor" >> "%BASE_DIR%desinstalar.bat"
+echo if exist "%%~dp0__pycache__" rd /s /q "%%~dp0__pycache__" >> "%BASE_DIR%desinstalar.bat"
+
+:: O truque magico adaptado para deletar apenas o proprio desinstalar.bat no final
+echo echo Limpeza concluida. O desinstalador se auto-destruira agora. >> "%BASE_DIR%desinstalar.bat"
+echo start /b "" cmd /c "timeout /t 3 /nobreak ^>nul ^& del "%%~f0"" >> "%BASE_DIR%desinstalar.bat"
 echo exit >> "%BASE_DIR%desinstalar.bat"
 
 echo.
