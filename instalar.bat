@@ -60,24 +60,28 @@ echo echo. >> "%BASE_DIR%desinstalar.bat"
 echo echo Removendo todos os arquivos do projeto... >> "%BASE_DIR%desinstalar.bat"
 
 :: Deleta os arquivos do projeto original
-echo if exist "%%~dp0expansor.py" del "%%~dp0expansor.py" >> "%BASE_DIR%desinstalar.bat"
-echo if exist "%%~dp0requirements.txt" del "%%~dp0requirements.txt" >> "%BASE_DIR%desinstalar.bat"
-echo if exist "%%~dp0modelos.json" del "%%~dp0modelos.json" >> "%BASE_DIR%desinstalar.bat"
+echo if exist "%%~dp0expansor.py" del /f /q "%%~dp0expansor.py" >> "%BASE_DIR%desinstalar.bat"
+echo if exist "%%~dp0requirements.txt" del /f /q "%%~dp0requirements.txt" >> "%BASE_DIR%desinstalar.bat"
+echo if exist "%%~dp0modelos.json" del /f /q "%%~dp0modelos.json" >> "%BASE_DIR%desinstalar.bat"
+echo if exist "%%~dp0.gitignore" del /f /q "%%~dp0.gitignore" >> "%BASE_DIR%desinstalar.bat"
+
+:: Deleta o proprio instalar.bat
+echo if exist "%%~dp0instalar.bat" del /f /q "%%~dp0instalar.bat" >> "%BASE_DIR%desinstalar.bat"
 
 :: Deleta os arquivos .bat gerados
-echo if exist "%%~dp0start.bat" del "%%~dp0start.bat" >> "%BASE_DIR%desinstalar.bat"
-echo if exist "%%~dp0stop.bat" del "%%~dp0stop.bat" >> "%BASE_DIR%desinstalar.bat"
-echo if exist "%%~dp0status.bat" del "%%~dp0status.bat" >> "%BASE_DIR%desinstalar.bat"
-echo if exist "%%~dp0set.bat" del "%%~dp0set.bat" >> "%BASE_DIR%desinstalar.bat"
+echo if exist "%%~dp0start.bat" del /f /q "%%~dp0start.bat" >> "%BASE_DIR%desinstalar.bat"
+echo if exist "%%~dp0stop.bat" del /f /q "%%~dp0stop.bat" >> "%BASE_DIR%desinstalar.bat"
+echo if exist "%%~dp0status.bat" del /f /q "%%~dp0status.bat" >> "%BASE_DIR%desinstalar.bat"
+echo if exist "%%~dp0set.bat" del /f /q "%%~dp0set.bat" >> "%BASE_DIR%desinstalar.bat"
 
 :: Remove a pasta do venv e o cache do python
 echo if exist "%%~dp0venv_expansor" rd /s /q "%%~dp0venv_expansor" >> "%BASE_DIR%desinstalar.bat"
 echo if exist "%%~dp0__pycache__" rd /s /q "%%~dp0__pycache__" >> "%BASE_DIR%desinstalar.bat"
 
-:: O truque magico adaptado para deletar apenas o proprio desinstalar.bat no final
+:: O truque magico DEFINITIVO para apagar a si mesmo sem falhas
 echo echo Limpeza concluida. O desinstalador se auto-destruira agora. >> "%BASE_DIR%desinstalar.bat"
-echo start /b "" cmd /c "timeout /t 3 /nobreak ^>nul ^& del "%%~f0"" >> "%BASE_DIR%desinstalar.bat"
-echo exit >> "%BASE_DIR%desinstalar.bat"
+echo timeout /t 2 /nobreak ^>nul >> "%BASE_DIR%desinstalar.bat"
+echo (goto) 2^>nul ^& del "%%~f0" >> "%BASE_DIR%desinstalar.bat"
 
 echo.
 echo ===================================================
